@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Web Spreadsheet</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23217346'/><path fill='white' d='M8 8h16v3H8zm0 6h16v3H8zm0 6h10v3H8z'/></svg>" />
+</head>
+<body>
+  <div id="app">
+    <header class="titlebar">
+      <div class="brand" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="22" height="22"><rect width="32" height="32" rx="6" fill="#217346"/><path fill="#fff" d="M8 8h16v3H8zm0 6h16v3H8zm0 6h10v3H8z"/></svg>
+      </div>
+      <input id="book-name" class="book-name" value="Book1" spellcheck="false" title="ブック名" />
+      <span id="dirty-dot" class="dirty-dot" hidden>●</span>
+      <div class="title-spacer"></div>
+      <button type="button" class="icon-btn" id="btn-help" title="ショートカット (F1)">?</button>
+    </header>
+
+    <nav class="menubar" role="menubar">
+      <button type="button" class="menu-top" data-menu="file">ファイル</button>
+      <button type="button" class="menu-top" data-ribbon="home">ホーム</button>
+      <button type="button" class="menu-top" data-ribbon="formula">数式</button>
+      <button type="button" class="menu-top" data-ribbon="view">表示</button>
+      <button type="button" class="menu-top" data-ribbon="help">ヘルプ</button>
+    </nav>
+    <div id="menu-file" class="dropdown" hidden>
+      <button type="button" data-cmd="new">新規作成<span>Ctrl+N</span></button>
+      <button type="button" data-cmd="open">開く...<span>Ctrl+O</span></button>
+      <button type="button" data-cmd="save">保存<span>Ctrl+S</span></button>
+      <button type="button" data-cmd="saveAs">名前を付けて保存...</button>
+      <hr />
+      <button type="button" data-cmd="sample">サンプルブック</button>
+      <button type="button" data-cmd="exportJson">JSON をコピー</button>
+    </div>
+
+    <div class="ribbon" id="ribbon">
+      <div class="ribbon-tab" data-tab="home">
+        <div class="rgroup">
+          <div class="rbtns">
+            <button type="button" data-cmd="undo" title="元に戻す (Ctrl+Z)">↩</button>
+            <button type="button" data-cmd="redo" title="やり直し (Ctrl+Y)">↪</button>
+          </div>
+          <div class="rlabel">履歴</div>
+        </div>
+        <div class="rgroup">
+          <div class="rbtns">
+            <button type="button" data-cmd="cut" title="切り取り (Ctrl+X)">✂</button>
+            <button type="button" data-cmd="copy" title="コピー (Ctrl+C)">⧉</button>
+            <button type="button" data-cmd="paste" title="貼り付け (Ctrl+V)">光</button>
+          </div>
+          <div class="rlabel">クリップボード</div>
+        </div>
+        <div class="rgroup">
+          <div class="rbtns">
+            <select id="font-family" title="フォント">
+              <option value="">(標準)</option>
+              <option>Yu Gothic UI</option>
+              <option>Meiryo</option>
+              <option>Segoe UI</option>
+              <option>Arial</option>
+              <option>Consolas</option>
+              <option>Times New Roman</option>
+            </select>
+            <select id="font-size" title="サイズ">
+              <option value="">11</option>
+              <option>8</option><option>9</option><option>10</option><option>11</option>
+              <option>12</option><option>14</option><option>16</option><option>18</option>
+              <option>20</option><option>24</option><option>36</option>
+            </select>
+            <button type="button" data-cmd="bold" class="fmt" title="太字 (Ctrl+B)"><b>B</b></button>
+            <button type="button" data-cmd="italic" class="fmt" title="斜体 (Ctrl+I)"><i>I</i></button>
+            <button type="button" data-cmd="underline" class="fmt" title="下線 (Ctrl+U)"><u>U</u></button>
+            <label class="color-wrap" title="文字色"><input type="color" id="font-color" value="#000000" /><span>A</span></label>
+            <label class="color-wrap" title="塗りつぶし"><input type="color" id="fill-color" value="#ffff00" /><span class="fill-ic">■</span></label>
+          </div>
+          <div class="rlabel">フォント</div>
+        </div>
+        <div class="rgroup">
+          <div class="rbtns">
+            <button type="button" data-cmd="alignL" title="左揃え">≡</button>
+            <button type="button" data-cmd="alignC" title="中央">≡</button>
+            <button type="button" data-cmd="alignR" title="右揃え">≡</button>
+            <button type="button" data-cmd="wrap" title="折り返し">↵</button>
+            <button type="button" data-cmd="merge" title="結合">結合</button>
+            <button type="button" data-cmd="unmerge" title="結合解除">解除</button>
+          </div>
+          <div class="rlabel">配置</div>
+        </div>
+        <div class="rgroup">
+          <div class="rbtns">
+            <select id="num-format" title="表示形式">
+              <option value="general">標準</option>
+              <option value="number">数値</option>
+              <option value="currency">通貨</option>
+              <option value="percent">パーセント</option>
+              <option value="date">日付</option>
+              <option value="text">文字列</option>
+            </select>
+            <button type="button" data-cmd="fmtPercent" title="%">%</button>
+            <button type="button" data-cmd="fmtComma" title="千位区切り">,</button>
+            <button type="button" data-cmd="decInc" title="小数増">.0↑</button>
+            <button type="button" data-cmd="decDec" title="小数減">.0↓</button>
+          </div>
+          <div class="rlabel">数値</div>
+        </div>
+        <div class="rgroup">
+          <div class="rbtns">
+            <button type="button" data-cmd="insertRow" title="行を挿入">+ 行</button>
+            <button type="button" data-cmd="insertCol" title="列を挿入">+ 列</button>
+            <button type="button" data-cmd="deleteRow" title="行を削除">− 行</button>
+            <button type="button" data-cmd="deleteCol" title="列を削除">− 列</button>
+            <button type="button" data-cmd="clear" title="内容をクリア (Delete)">クリア</button>
+          </div>
+          <div class="rlabel">セル</div>
+        </div>
+        <div class="rgroup">
+          <div class="rbtns">
+            <button type="button" data-cmd="sortAsc" title="昇順">A↓</button>
+            <button type="button" data-cmd="sortDesc" title="降順">Z↓</button>
+            <button type="button" data-cmd="find" title="検索 (Ctrl+F)">検索</button>
+          </div>
+          <div class="rlabel">データ</div>
+        </div>
+      </div>
+      <div class="ribbon-tab" data-tab="formula" hidden>
+        <div class="rgroup">
+          <div class="rbtns">
+            <button type="button" data-cmd="autoSum" title="自動 SUM (Alt+=)">Σ SUM</button>
+            <button type="button" data-cmd="insertFx" title="関数の挿入">fx</button>
+            <button type="button" data-cmd="recalc" title="再計算 (F9)">再計算</button>
+            <button type="button" data-cmd="toggleFormulas" title="数式の表示 (Ctrl+`)">数式表示</button>
+          </div>
+          <div class="rlabel">計算</div>
+        </div>
+        <div class="rgroup grow">
+          <div class="hint">
+            数式は <code>=</code> で始めます。セル参照・Excel 関数に加えて <strong>JavaScript 式</strong>が使えます。
+            例: <code>=SUM(A1:A10)</code> / <code>=A1:A10.filter(x=&gt;x&gt;0).length</code> / <code>=Math.sqrt(B2)</code>
+          </div>
+        </div>
+      </div>
+      <div class="ribbon-tab" data-tab="view" hidden>
+        <div class="rgroup">
+          <div class="rbtns">
+            <button type="button" data-cmd="freeze" title="ウィンドウ枠の固定">枠固定</button>
+            <button type="button" data-cmd="unfreeze" title="固定解除">解除</button>
+            <button type="button" data-cmd="gridlines" title="網線">網線</button>
+            <button type="button" data-cmd="zoomOut">−</button>
+            <span id="zoom-label">100%</span>
+            <button type="button" data-cmd="zoomIn">+</button>
+            <button type="button" data-cmd="zoomReset">100%</button>
+          </div>
+          <div class="rlabel">表示</div>
+        </div>
+      </div>
+      <div class="ribbon-tab" data-tab="help" hidden>
+        <div class="rgroup grow">
+          <div class="hint">F1 でショートカット一覧。独自形式 <code>.wss.json</code> を保存。Excel ファイル互換はありません。データはこのブラウザ内のみで動作します。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="formula-bar">
+      <input id="name-box" class="name-box" spellcheck="false" title="名前ボックス / セル移動" />
+      <button type="button" id="btn-fx" class="fx" title="関数">fx</button>
+      <div class="fx-cancel-ok" hidden id="edit-btns">
+        <button type="button" id="btn-cancel" title="取消 (Esc)">✕</button>
+        <button type="button" id="btn-commit" title="確定 (Enter)">✓</button>
+      </div>
+      <div id="formula-input" class="formula-input" contenteditable="true" spellcheck="false" role="textbox" aria-label="数式バー"></div>
+    </div>
+
+    <div class="workspace" id="workspace">
+      <div class="grid" id="grid">
+        <div class="corner" id="corner" title="すべて選択"></div>
+        <div class="col-headers" id="col-headers"></div>
+        <div class="row-headers" id="row-headers"></div>
+        <div class="sheet-scroll" id="sheet-scroll">
+          <div class="sheet-sizer" id="sheet-sizer"></div>
+          <div class="layer cells-layer" id="cells-layer"></div>
+          <div class="layer sel-layer" id="sel-layer"></div>
+          <textarea id="editor" class="editor" spellcheck="false" hidden></textarea>
+        </div>
+      </div>
+    </div>
+
+    <footer class="sheetbar">
+      <button type="button" id="btn-add-sheet" class="add-sheet" title="シートの挿入">+</button>
+      <div class="tabs" id="sheet-tabs"></div>
+      <div class="status" id="status">
+        <span id="status-mode">準備完了</span>
+        <span id="status-agg"></span>
+      </div>
+    </footer>
+  </div>
+
+  <input type="file" id="file-open" accept=".json,.wss.json,application/json" hidden />
+
+  <div id="ctx" class="context-menu" hidden></div>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <h2 id="modal-title"></h2>
+      <div id="modal-body"></div>
+      <div class="modal-actions">
+        <button type="button" id="modal-cancel">キャンセル</button>
+        <button type="button" id="modal-ok" class="primary">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
